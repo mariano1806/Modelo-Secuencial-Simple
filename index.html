@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TensorFlow.js</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+</head>
+<body>
+  <h1><b>TensorFlow.js</b></h1>
+  <p>Formula: y = 2x + 6</p>
+
+  <button onclick="entrenarModelo()">Entrenar Modelo</button>
+  <input type="number" id="inputX" value="4">
+  <button onclick="predecir()">Predecir</button>
+
+  <p id="output"></p>
+
+  <script>
+    let modelo;
+    let modeloEntrenado = false;
+
+    async function entrenarModelo() {
+      modelo = tf.sequential();
+      modelo.add(tf.layers.dense({ units: 1, inputShape: [1] }));
+      modelo.compile({ loss: 'meanSquaredError', optimizer: 'sgd' });
+
+      const xs = tf.tensor1d([-6, -5, -4, -3, -2, -1, 0, 1, 2]);
+      const ys = tf.tensor1d([-6, -4, -2, 0, 2, 4, 6, 8, 10]);
+
+      document.getElementById("output").innerText = "Entrenando modelo, por favor espera...";
+
+      await modelo.fit(xs, ys, {
+        epochs: 350,
+        callbacks: {
+          onTrainEnd: () => {
+            modeloEntrenado = true;
+            document.getElementById("output").innerText = "Entrenamiento finalizado. El modelo está listo para ser usado.";
+          }
+        }
+      });
+    }
+
+    function predecir() {
+      if (!modeloEntrenado) {
+        document.getElementById("output").innerText = "Primero entrena el modelo.";
+        return;
+      }
+
+      const valorX = parseFloat(document.getElementById("inputX").value);
+      const inputTensor = tf.tensor2d([valorX], [1, 1]);
+      const resultado = modelo.predict(inputTensor);
+      resultado.array().then(array => {
+        document.getElementById("output").innerText = `El resultado de predecir para ${valorX} es: ${array[0][0]}`;
+      });
+    }
+  </script>
+</body>
+</html>
